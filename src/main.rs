@@ -1,11 +1,13 @@
 mod water;
 
+use bevy_flycam::{FlyCam, NoCameraPlayerPlugin};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use std::f32::consts::{FRAC_PI_4, PI};
-use bevy_flycam::{NoCameraPlayerPlugin, FlyCam};
 
 use bevy::{prelude::*, scene::SceneInstance, window::WindowPlugin};
-use water::{WaterReflectionTexture, setup_reflection_cam, update_reflection_cam, update_reflection_texture};
+use water::{
+    setup_reflection_cam, update_reflection_cam, update_reflection_texture, WaterReflectionTexture,
+};
 
 fn main() {
     App::new()
@@ -37,10 +39,7 @@ fn main() {
 #[derive(Component)]
 pub struct Player;
 
-fn setup(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-) {
+fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // spawn player
     commands
         .spawn(Camera3dBundle {
@@ -78,7 +77,6 @@ fn setup(
     });
 }
 
-
 fn prepare_scene(
     mut commands: Commands,
     mut ev_asset: EventReader<AssetEvent<Scene>>,
@@ -100,9 +98,11 @@ fn prepare_scene(
                                     base_color: Color::rgba_u8(58, 68, 84, 84),
                                     reflection_image: reflection_texture.texture.clone(),
                                     wave_height: 1.,
-                                    direction: Vec2::new(1.,1.),
+                                    direction: Vec2::new(1., 1.),
                                 });
-                                commands.entity(mesh.clone()).remove::<Handle<StandardMaterial>>();
+                                commands
+                                    .entity(mesh.clone())
+                                    .remove::<Handle<StandardMaterial>>();
                                 commands.entity(mesh.clone()).insert(water_material);
                             }
                         }
@@ -127,4 +127,3 @@ fn animate_light_direction(
         );
     }
 }
-

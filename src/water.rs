@@ -56,6 +56,8 @@ pub fn update_reflection_texture(
     mut size_changed: EventReader<WindowResized>,
     mut tex_res: ResMut<WaterReflectionTexture>,
     mut images: ResMut<Assets<Image>>,
+    mut water: Query<&mut Handle<WaterMaterial>>,
+    mut water_assets: ResMut<Assets<WaterMaterial>>,
 ) {
     for WindowResized {id: _,width,height} in size_changed.iter() {
         let tex = tex_res.as_mut();
@@ -66,6 +68,13 @@ pub fn update_reflection_texture(
         };
         if let Some(img) = images.get_mut(&tex.texture) {
             img.resize(size);
+        }
+        // If ran in release mode it normally freezes the handle to the texture on resize so
+        // we need to reassign the handle even though it should be the same.
+        for mat in water.iter_mut() {
+            if let Some(mut material) = water_assets.get_mut(&mat) {
+                material.reflection_image = tex.texture.clone();
+            }
         }
        
     }

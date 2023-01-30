@@ -1,0 +1,12 @@
+[package]
+name = "birdylook"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bevy = "0.9"
+bevy-inspector-egui = "0.17.0"
+
+bevy_flycam = { git = "https://github.com/sburris0/bevy_flycam" }

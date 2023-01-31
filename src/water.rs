@@ -93,8 +93,8 @@ pub fn setup_reflection_cam(
 ) {
     let window = windows.get_primary().unwrap();
     let size = Extent3d {
-        width: window.width() as u32 / 2,
-        height: window.height() as u32 / 2,
+        width: window.width() as u32 / 3,
+        height: window.height() as u32 / 3,
         ..default()
     };
     // This is the texture that will be rendered to.

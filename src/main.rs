@@ -3,6 +3,7 @@ mod water;
 use bevy_flycam::{FlyCam, NoCameraPlayerPlugin};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use std::f32::consts::{FRAC_PI_4, PI};
+use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 
 use bevy::{prelude::*, scene::SceneInstance, window::WindowPlugin};
 use water::{
@@ -27,11 +28,12 @@ fn main() {
             ..default()
         }))
         .add_plugin(NoCameraPlayerPlugin)
+        .add_plugin(LogDiagnosticsPlugin::default())
+        .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(WorldInspectorPlugin)
         .add_plugin(MaterialPlugin::<water::WaterMaterial>::default())
         .add_startup_system(setup)
         .add_startup_system(setup_reflection_cam)
-        .add_system(animate_light_direction)
         .add_system(prepare_scene)
         .add_system(update_reflection_cam)
         .add_system(update_reflection_texture)
@@ -56,27 +58,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         scene: asset_server.load("scene/game_world.glb#Scene0"),
         ..default()
     });
-    // spawn a moving light
-    const HALF_SIZE: f32 = 1.0;
-
-    commands.spawn(DirectionalLightBundle {
-        directional_light: DirectionalLight {
-            illuminance: 10.0,
-            color: Color::rgb(1.0, 0.8, 0.8),
-            shadow_projection: OrthographicProjection {
-                left: -HALF_SIZE,
-                right: HALF_SIZE,
-                bottom: -HALF_SIZE,
-                top: HALF_SIZE,
-                near: -10.0 * HALF_SIZE,
-                far: 10.0 * HALF_SIZE,
-                ..default()
-            },
-            shadows_enabled: true,
-            ..default()
-        },
-        ..default()
-    });
+    
 }
 
 fn prepare_scene(
@@ -127,20 +109,5 @@ fn prepare_scene(
                 }
             }
         }
-    }
-}
-
-// move the light
-fn animate_light_direction(
-    time: Res<Time>,
-    mut query: Query<&mut Transform, With<DirectionalLight>>,
-) {
-    for mut transform in &mut query {
-        transform.rotation = Quat::from_euler(
-            EulerRot::ZYX,
-            0.0,
-            time.elapsed_seconds() * PI / 10.0,
-            -FRAC_PI_4,
-        );
     }
 }

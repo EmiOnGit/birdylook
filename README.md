@@ -21,7 +21,7 @@ The reflection is later [distorted using the normals of the vertex](assets/shade
 Objects underwater are captured by the reflecting camera resulting in sometimes questionable results.
 The solution would be to wait for clipping plane support or use the frustum of the camera to only capture objects above the water.
 
-## Lithing
+## Lighting
 todo
 ## Animated grass
 todo

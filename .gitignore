@@ -1,2 +1,4 @@
 /target
 Cargo.lock
+/assets/*/*.blend1
+/assets/*/*/*.blend1

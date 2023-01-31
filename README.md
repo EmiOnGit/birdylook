@@ -1,5 +1,5 @@
 # Birdylook
-This is a project mainly to showcase more advanced techniques in the [bevy](https://bevyengine.org/) ecosystem.
+This is a project mainly to showcase more advanced techniques in the [bevy](https://bevyengine.org/) ecosystem or as a template for others.
 If you see any bugs or want to rewrite something more efficiently or readable feel free to make a PR or open an Issue to describe your thoughts.
 Currently, the project aims to implement a nice-looking environment with:
 - Animated water
@@ -10,7 +10,7 @@ Currently, the project aims to implement a nice-looking environment with:
 ## Animated Water
 ### Waves
 Currently, the water uses vertex displacement to animate waves.
-Stacking sin waves are used as periodic functions as you can see in [the shader code](assets/shaders/water_shader.wgsl). This is great for calmer-looking water but if you need more stormy water in your game I may recommend using the approach described in the [gpugems book](https://developer.nvidia.com/gpugems/gpugems/part-i-natural-effects/chapter-1-effective-water-simulation-physical-models) (see Equation 8a, 8b).
+Stacking sin waves are used as periodic functions as you can see in [the shader code](assets/shaders/water_shader.wgsl). This is great for calmer-looking water but if you need more stormy water in your game I may recommend using the approach described in the [GPU gems book](https://developer.nvidia.com/gpugems/gpugems/part-i-natural-effects/chapter-1-effective-water-simulation-physical-models)](https://developer.nvidia.com/gpugems/gpugems/part-i-natural-effects/chapter-1-effective-water-simulation-physical-models) (see Equation 8a, 8b).
 
 ### Reflections
 For the reflection planar reflections are used. 

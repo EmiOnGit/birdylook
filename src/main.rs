@@ -11,9 +11,11 @@ use water::{
 
 fn main() {
     App::new()
+        .insert_resource(ClearColor(Color::rgb(0.3, 0.3, 0.4)))
+
         .insert_resource(AmbientLight {
             color: Color::WHITE,
-            brightness: 2.2,
+            brightness: 0.2,
         })
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             window: WindowDescriptor {
@@ -59,7 +61,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
-            illuminance: 20000.0,
+            illuminance: 10.0,
             color: Color::rgb(1.0, 0.8, 0.8),
             shadow_projection: OrthographicProjection {
                 left: -HALF_SIZE,
@@ -95,7 +97,7 @@ fn prepare_scene(
                         if name.contains("Water") {
                             for mesh in scene_root_nodes.get(e).unwrap() {
                                 let water_material = water_materials.add(water::WaterMaterial {
-                                    base_color: Color::rgba_u8(58, 68, 84, 84),
+                                    base_color: Color::rgba_u8(28, 28, 44, 84),
                                     reflection_image: reflection_texture.texture.clone(),
                                     wave_height: 1.,
                                     direction: Vec2::new(1., 1.),
@@ -105,6 +107,21 @@ fn prepare_scene(
                                     .remove::<Handle<StandardMaterial>>();
                                 commands.entity(mesh.clone()).insert(water_material);
                             }
+                        }
+                        if name.contains("Lantern"){
+                            let point_light = commands
+                                .spawn(PointLightBundle {
+                                    point_light: PointLight {
+                                        range: 3000.,
+                                        intensity: 1600.0, 
+                                        color: Color::rgb(0.9,0.5,0.2),
+                                        shadows_enabled: true,
+                                        ..default()
+                                    },
+                                    ..default()
+                                }).id();
+                            commands.entity(e).add_child(point_light);
+
                         }
                     }
                 }

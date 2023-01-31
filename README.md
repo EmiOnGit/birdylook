@@ -6,6 +6,7 @@ Currently, the project aims to implement a nice-looking environment with:
 - Good looking lighting
 - Animated grass
 
+![Showcase](assets/Birdylook_showcase.mp4)
 ## Animated Water
 ### Waves
 Currently, the water uses vertex displacement to animate waves.

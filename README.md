@@ -23,7 +23,9 @@ Objects underwater are captured by the reflecting camera resulting in sometimes 
 The solution would be to wait for clipping plane support or use the frustum of the camera to only capture objects above the water.
 
 ## Lighting
-todo
+The lanterns do emit light by having a simple point light as child. 
+Furthermore, plans are to move/distort the light by the wind.
+
 ## Animated grass
 todo
 

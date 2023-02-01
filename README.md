@@ -23,11 +23,11 @@ Objects underwater are captured by the reflecting camera resulting in sometimes 
 The solution would be to wait for clipping plane support or use the frustum of the camera to only capture objects above the water.
 
 ## Lighting
-The lanterns do emit light by having a simple point light as child. 
+The lanterns do emit light by having a simple point light as a child. 
 Furthermore, plans are to move/distort the light by the wind.
 
 ## Animated grass
-todo
+The grass is created using instancing close to the [example in the bevy repo](https://github.com/bevyengine/bevy/blob/latest/examples/shader/shader_instancing.rs). To generate the places where the grass is generated I use a more hacky way. I use a [texture](assets/layers/unformated/grass_placement.png) to mark all the places I want random grass to be generated. Using a small [python script](assets/layers/converter/converter.py) I transform the image into a ron file, consisting of all places compressed into bigger quads. 
 
 # License
 ## Code

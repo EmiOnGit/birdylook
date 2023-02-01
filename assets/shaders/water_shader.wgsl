@@ -55,10 +55,10 @@ fn vertex(
     let rotation_matrix1 = rotation_matrix(rotation_angle / 180. * 3.14);
 
     // init waves
-    let wave1 = Wave(0.10, 0.004 * wave_height, 0.05, wave_direction);
-    let wave2 = Wave(0.07, 0.002 * wave_height, 0.06, rotation_matrix1 * wave_direction);
-    let wave3 = Wave(0.123, 0.003 * wave_height, 0.02, transpose(rotation_matrix1) * wave_direction);
-    let wave4 = Wave(0.043, 0.002 * wave_height, 0.03, - wave_direction);
+    let wave1 = Wave(0.10, 0.008 * wave_height, 0.05, wave_direction);
+    let wave2 = Wave(0.07, 0.004 * wave_height, 0.06, rotation_matrix1 * wave_direction);
+    let wave3 = Wave(0.123, 0.006 * wave_height, 0.02, transpose(rotation_matrix1) * wave_direction);
+    let wave4 = Wave(0.043, 0.004 * wave_height, 0.03, - wave_direction);
 
     // extract xy position from vertex
     let vertex_xy = vec2<f32>(vertex_position[0], vertex_position[2]);
@@ -93,11 +93,11 @@ fn fragment(
     var scale_r = 1.;
     var scale_b = 1.;
     if(in.y < -0.002) {
-        scale_r = 0.8;
-        scale_g = 0.8;
-        scale_b = 0.8;
+        scale_r = 2.8;
+        scale_g = 2.8;
+        scale_b = 2.0;
     }
-    // We distored the uv with the normal. This should not be the right way and doesn't return good looking distorsions
+    // We distort the uv with the normal. This should not be the right way and doesn't return good looking distorsions
     var uv = vec2<f32>(0.,1.) + (vec2<f32>(1.,-1.) * coords_to_viewport_uv(in.clip_position.xy, view.viewport) + in.normal.xy * 0.1 );
     let color_pixel =  vec4<f32>(scale_r, scale_g, scale_b, 1.) * color;
 

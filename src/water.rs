@@ -93,8 +93,8 @@ pub fn setup_reflection_cam(
 ) {
     let window = windows.get_primary().unwrap();
     let size = Extent3d {
-        width: window.width() as u32 / 3,
-        height: window.height() as u32 / 3,
+        width: window.width() as u32 / 2,
+        height: window.height() as u32 / 2,
         ..default()
     };
     // This is the texture that will be rendered to.
@@ -117,10 +117,12 @@ pub fn setup_reflection_cam(
     commands.insert_resource(WaterReflectionTexture {
         texture: image_handle.clone(),
     });
-    let mut camera = Camera::default();
+    let camera = Camera {
+        target: RenderTarget::Image(image_handle),
+        priority: 0,
+        ..default()
+    };
 
-    camera.target = RenderTarget::Image(image_handle.clone());
-    camera.priority = 0;
     commands
         .spawn(Camera3dBundle {
             camera,
@@ -144,7 +146,7 @@ pub fn update_reflection_cam(
             ref_cam.translation.y = -player_cam.translation.y;
 
             // Quad[-x,y,-z,w] mirrors the Quad at the local z-axis. which is exactly what we want!
-            let mut players_rotation = player_cam.rotation.clone();
+            let mut players_rotation = player_cam.rotation;
             players_rotation.x *= -1.;
             players_rotation.z *= -1.;
             ref_cam.rotation = players_rotation;

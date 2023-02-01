@@ -6,7 +6,7 @@ Currently, the project aims to implement a nice-looking environment with:
 - Good looking lighting
 - Animated grass
 
-![Showcase](assets/showcase.gif)
+![Showcase](assets/showcase.webm)
 ## Animated Water
 ### Waves
 Currently, the water uses vertex displacement to animate waves.

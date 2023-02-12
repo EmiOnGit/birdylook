@@ -1,85 +1,61 @@
 use bevy::{
     asset::{AssetLoader, LoadContext, LoadedAsset},
-    core_pipeline::core_3d::Transparent3d,
     prelude::*,
     reflect::TypeUuid,
     render::{
-        extract_component::ExtractComponentPlugin,
-        mesh::{Indices, VertexAttributeValues},
-        primitives::Aabb,
-        render_phase::AddRenderCommand,
-        render_resource::{PrimitiveTopology, SpecializedMeshPipelines},
-        view::NoFrustumCulling,
-        RenderApp, RenderStage,
+        primitives::Aabb, mesh::VertexAttributeValues,
     },
     utils::BoxedFuture,
 };
-use rand::Rng;
+use warblersneeds::{prelude::{*, standard_generator::GrassFieldGenerator}, file_loader::GrassFields, generator::GrassGenerator};
 
-use crate::grass_instancing::{
-    prepare_instance_buffers, queue_custom, CustomPipeline, DrawCustom, GrassInstanceData,
-    GrassInstanceMaterialData,
-};
 pub struct GrassPlugin;
 impl Plugin for GrassPlugin {
-    fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_asset::<GrassDataAsset>()
-            .init_asset_loader::<GrassDataAssetLoader>()
-            .add_startup_system(insert_grass_data)
-            .add_system(create_grass);
-        app.add_plugin(ExtractComponentPlugin::<GrassInstanceMaterialData>::default());
-        app.sub_app_mut(RenderApp)
-            .add_render_command::<Transparent3d, DrawCustom>()
-            .init_resource::<CustomPipeline>()
-            .init_resource::<SpecializedMeshPipelines<CustomPipeline>>()
-            .add_system_to_stage(RenderStage::Queue, queue_custom)
-            .add_system_to_stage(RenderStage::Prepare, prepare_instance_buffers);
+    fn build(&self, app: &mut App) {
+        app.add_startup_system(insert_grass_data)
+        .add_system(create_grass);
     }
 }
 const GRASS_PLANE_SIZE: usize = 512;
 fn create_grass(
     mut commands: Commands,
     mut res: ResMut<GrassDataRes>,
-    asset_loader: ResMut<Assets<GrassDataAsset>>,
-    mut meshes: ResMut<Assets<Mesh>>,
+    asset_loader: ResMut<Assets<GrassFields>>,
+    meshes: ResMut<Assets<Mesh>>,
     ground: Query<(&Transform, &Name, &Children)>,
     ground_plane: Query<(&Aabb, &Handle<Mesh>)>,
 ) {
     if !res.loaded {
-        let mut rng = rand::thread_rng();
-        let mut grass_mesh = Mesh::new(PrimitiveTopology::TriangleList);
-        grass_mesh.insert_attribute(
-            Mesh::ATTRIBUTE_POSITION,
-            vec![[0., 0., 0.], [0.5, 0., 0.], [0., 0., 0.5], [0.25, 2., 0.25]],
-        );
-        grass_mesh.set_indices(Some(Indices::U32(vec![1, 0, 3, 2, 1, 3, 0, 2, 3])));
-        let grass_mesh_handle = meshes.add(grass_mesh);
-        for (ground_transform, ground_name, children) in ground.iter() {
-            if ground_name.contains("Ground") {
-                if let Some(data) = asset_loader.get(&res.data) {
-                    let mut instance_vector: Vec<GrassInstanceData> = Vec::with_capacity(60_000);
+        if let Some(grass_data) = asset_loader.get(&res.data) {
+            let generator = GrassFieldGenerator { data: grass_data };
 
-                    let mut scale_x = ground_transform.scale.x;
-                    let mut scale_z = ground_transform.scale.z;
-                    let mut mesh = None;
-                    let mut count = 0;
+            let config = StandardGeneratorConfig {
+                density: 0.7,
+                height: 5.,
+                height_deviation: 0.5,
+                seed: Some(0x121),
+            };
+            let mut grass = generator.generate_grass(config);
+            
+            for (ground_transform, ground_name, children) in ground.iter() {
+                    if ground_name.contains("Ground") {
+                        let mut scale_x = 1.;
+                        let mut mesh = None;
 
-                    for child in children.iter() {
-                        let (aabb, mesh_handle) = ground_plane.get(*child).unwrap();
-                        scale_x = aabb.center.x * 2. / GRASS_PLANE_SIZE as f32;
-                        scale_z = aabb.center.z * 2. / GRASS_PLANE_SIZE as f32;
-                        mesh = meshes.get(mesh_handle);
-                    }
-                    for value in data.0.iter() {
-                        let rect: GrassRect = value.into();
-                        if rect.id != 0 {
-                            let start_x = ground_transform.translation.x;
-                            let start_z = ground_transform.translation.z;
-                            let start_y = ground_transform.translation.y;
-                            let position_x = rect.x as f32 * scale_x;
-                            let center_x = position_x + rect.w as f32 / 2. * scale_x;
-                            let position_z = rect.z as f32 * scale_z;
-                            let center_z = position_z + rect.h as f32 / 2. * scale_z;
+                        let mut scale_z = 1.;
+                        for child in children.iter() {
+                            let (aabb, mesh_handle) = ground_plane.get(*child).unwrap();
+                            scale_x = aabb.center.x * 2. / GRASS_PLANE_SIZE as f32;
+                            scale_z = aabb.center.z * 2. / GRASS_PLANE_SIZE as f32;
+                            mesh = meshes.get(mesh_handle);
+
+                        }
+                        for blade in grass.0.iter_mut() {
+                            blade.position.x *= scale_x;
+                            blade.position.z *= scale_z;
+                        
+                            let position_x = blade.position.x;
+                            let position_z = blade.position.z;
 
                             let mut position_y = 0.;
                             let mut min_distance = 100.;
@@ -88,8 +64,8 @@ fn create_grass(
                                 mesh.unwrap().attribute(Mesh::ATTRIBUTE_POSITION)
                             {
                                 for position in vertex_positions.iter() {
-                                    let distance = (position[0] - center_x).abs()
-                                        + (position[2] - center_z).abs();
+                                    let distance = (position[0] - position_x).abs()
+                                        + (position[2] - position_z).abs();
                                     if distance < min_distance {
                                         position_y = position[1];
                                         if distance < 1. {
@@ -99,35 +75,24 @@ fn create_grass(
                                     }
                                 }
                             }
-                            for _ in 0..(rect.w * rect.h / 4) {
-                                let (x, scale, z): (f32, f32, f32) = rng.gen();
-                                let real_x = position_x + start_x + (x * rect.w as f32) * scale_x;
-                                let real_z = position_z + start_z + (z * rect.h as f32) * scale_z;
-                                let instance =
-                                    GrassInstanceData::new(real_x, position_y + start_y, real_z)
-                                        .with_scale(scale / 2. + 0.2);
-                                instance_vector.push(instance);
-                                count += 1;
-                            }
+                            blade.position.y = position_y;
                         }
+                        commands.spawn(WarblersBundle {
+                            grass: grass.clone(),
+                            transform: ground_transform.clone(),
+                            ..default()
+                        });
                     }
-                    let grass_blade_info = format!("loaded {} grass blades", count);
-                    info!(grass_blade_info);
-
-                    commands.spawn((
-                        grass_mesh_handle.clone(),
-                        GrassInstanceMaterialData(instance_vector),
-                        SpatialBundle::VISIBLE_IDENTITY,
-                        NoFrustumCulling,
-                    ));
-                    res.loaded = true;
-                }
+                    
             }
+            
+            res.loaded = true;
         }
+        
     }
 }
-fn insert_grass_data(mut commands: Commands, server: Res<AssetServer>) {
-    let grass_data: Handle<GrassDataAsset> = server.load("layers/grass_placement.ron");
+pub fn insert_grass_data(mut commands: Commands, server: Res<AssetServer>) {
+    let grass_data: Handle<GrassFields> = server.load("layers/grass_placement.ron");
     let grass_res = GrassDataRes {
         data: grass_data,
         loaded: false,
@@ -161,25 +126,6 @@ impl From<&[u16; 5]> for GrassRect {
 }
 #[derive(Resource)]
 pub struct GrassDataRes {
-    pub data: Handle<GrassDataAsset>,
+    pub data: Handle<GrassFields>,
     pub loaded: bool,
-}
-#[derive(Default)]
-pub struct GrassDataAssetLoader;
-impl AssetLoader for GrassDataAssetLoader {
-    fn load<'a>(
-        &'a self,
-        bytes: &'a [u8],
-        load_context: &'a mut LoadContext,
-    ) -> BoxedFuture<'a, Result<(), bevy::asset::Error>> {
-        Box::pin(async move {
-            let custom_asset = ron::de::from_bytes::<GrassDataAsset>(bytes)?;
-            load_context.set_default_asset(LoadedAsset::new(custom_asset));
-            Ok(())
-        })
-    }
-    /// in practice almost all files should be able to work here
-    fn extensions(&self) -> &[&str] {
-        &["ron"]
-    }
 }

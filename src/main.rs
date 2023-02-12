@@ -1,13 +1,12 @@
 mod grass;
-mod grass_instancing;
 mod water;
 
 // use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy_flycam::{FlyCam, NoCameraPlayerPlugin};
 use bevy_inspector_egui::quick::{AssetInspectorPlugin, WorldInspectorPlugin};
-use grass::GrassPlugin;
 
 use bevy::{prelude::*, scene::SceneInstance, window::WindowPlugin};
+use grass::GrassPlugin;
 use water::{
     setup_reflection_cam, update_reflection_cam, update_reflection_texture, WaterMaterial,
     WaterReflectionTexture,
@@ -33,6 +32,7 @@ fn main() {
         // used to show fps in console
         // .add_plugin(FrameTimeDiagnosticsPlugin::default())
         // .add_plugin(LogDiagnosticsPlugin::default())
+        .add_plugin(warblersneeds::warblers_plugin::WarblersPlugin)
         .add_plugin(GrassPlugin)
         .add_plugin(WorldInspectorPlugin)
         .add_plugin(AssetInspectorPlugin::<WaterMaterial>::default())

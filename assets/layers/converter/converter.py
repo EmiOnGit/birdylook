@@ -1,20 +1,22 @@
 from PIL import Image 
 import numpy as np
-COLOR_MAP = [
-        [255,255,255], #default
-        [0,250,0], #grass
-        [100,100,100] #road (not yet implemented and will also be treaded as grass by now)
-        ]
+DEFAULT_COLOR = [255,255,255] # color which indicates no grass
 MAX_CLUSTER_SIZE = 20
 RAW_FILE_PATH = '../unformated/grass_placement.png'
 OUTPUT_FILE_PATH = "../grass_placement.ron"
-def nearest_color(color):
-    return np.argmin([np.linalg.norm(color[:3] - c) for c in COLOR_MAP])
+def grass_height(color):
+    max_height = np.linalg.norm(DEFAULT_COLOR)
+    distance = np.linalg.norm(color[:3] - DEFAULT_COLOR)
+    height = distance / max_height
+    if height < 0.1:
+        return 0
+    else:
+        return height
 
 
 class Box:
     def __init__(self, color, x, y):
-        self.color_index = nearest_color(color)
+        self.height = grass_height(color)
         self.x = x
         self.y = y
         self.w = 1
@@ -26,20 +28,19 @@ class Box:
             return(False)
         if self.y  != y:
             return False
-        return nearest_color(color) == self.color_index
+        return grass_height(color) == self.height
     def try_add_color(self, color, x, y):
         if not self.can_add_color(color,x,y):
             return False
         self.w += 1
         return True
     def __str__(self):
-        return "({},{},{},{},{})".format(self.color_index, self.x, self.y, self.w, self.h)
+        return "({},{},{},{},{})".format(self.height, self.x, self.y, self.w, self.h)
     def __repr__(self):
         return self.__str__()
     def try_add_box(self, other):
         if self.h == MAX_CLUSTER_SIZE:
             return False
-
         if self.x != other.x:
             return False
         if self.y + self.h != other.y:

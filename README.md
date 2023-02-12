@@ -38,5 +38,6 @@ Apache License, Version 2.0 (LICENSE-APACHE or http://www.apache.org/licenses/LI
 at your option. This means you can select the license you prefer! This dual-licensing approach is the de-facto standard in the Rust ecosystem and there are very good reasons to include both.
 
 ## Assets
+I made all assets myself and are free to use! If someone decides to use them for anything I'd be honored if you notify me about your usecase.
 All assets found in the [assets](assets/) folder are under the [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) license. 
 Meaning you're free to use the assets freely in any project, personal or commercial. There's no need to ask permission before using these. Giving attribution is not required, but is greatly appreciated! 

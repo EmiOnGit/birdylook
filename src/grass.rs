@@ -1,19 +1,15 @@
 use bevy::{
-    asset::{AssetLoader, LoadContext, LoadedAsset},
     prelude::*,
     reflect::TypeUuid,
-    render::{
-        primitives::Aabb, mesh::VertexAttributeValues,
-    },
-    utils::BoxedFuture,
+    render::{mesh::VertexAttributeValues, primitives::Aabb},
 };
-use warblersneeds::{prelude::{*, standard_generator::GrassFieldGenerator}, file_loader::GrassFields, generator::GrassGenerator};
+use warblersneeds::{file_loader::GrassFields, generator::GrassGenerator, prelude::*};
 
 pub struct GrassPlugin;
 impl Plugin for GrassPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(insert_grass_data)
-        .add_system(create_grass);
+            .add_system(create_grass);
     }
 }
 const GRASS_PLANE_SIZE: usize = 512;
@@ -36,59 +32,59 @@ fn create_grass(
                 seed: Some(0x121),
             };
             let mut grass = generator.generate_grass(config);
-            
+
             for (ground_transform, ground_name, children) in ground.iter() {
-                    if ground_name.contains("Ground") {
-                        let mut scale_x = 1.;
-                        let mut mesh = None;
+                if ground_name.contains("Ground") {
+                    let mut scale_x = 1.;
+                    let mut mesh = None;
 
-                        let mut scale_z = 1.;
-                        for child in children.iter() {
-                            let (aabb, mesh_handle) = ground_plane.get(*child).unwrap();
-                            scale_x = aabb.center.x * 2. / GRASS_PLANE_SIZE as f32;
-                            scale_z = aabb.center.z * 2. / GRASS_PLANE_SIZE as f32;
-                            mesh = meshes.get(mesh_handle);
+                    let mut scale_z = 1.;
+                    for child in children.iter() {
+                        let (aabb, mesh_handle) = ground_plane.get(*child).unwrap();
+                        scale_x = aabb.center.x * 2. / GRASS_PLANE_SIZE as f32;
+                        scale_z = aabb.center.z * 2. / GRASS_PLANE_SIZE as f32;
+                        mesh = meshes.get(mesh_handle);
+                    }
+                    for blade in grass.instances.iter_mut() {
+                        blade.position.x *= scale_x;
+                        blade.position.z *= scale_z;
 
-                        }
-                        for blade in grass.0.iter_mut() {
-                            blade.position.x *= scale_x;
-                            blade.position.z *= scale_z;
-                        
-                            let position_x = blade.position.x;
-                            let position_z = blade.position.z;
+                        let position_x = blade.position.x;
+                        let position_z = blade.position.z;
 
-                            let mut position_y = 0.;
-                            let mut min_distance = 100.;
-                            // Really heavy operations here. Could need some real optimization
-                            if let Some(VertexAttributeValues::Float32x3(vertex_positions)) =
-                                mesh.unwrap().attribute(Mesh::ATTRIBUTE_POSITION)
-                            {
-                                for position in vertex_positions.iter() {
-                                    let distance = (position[0] - position_x).abs()
-                                        + (position[2] - position_z).abs();
-                                    if distance < min_distance {
-                                        position_y = position[1];
-                                        if distance < 1. {
-                                            break;
-                                        }
-                                        min_distance = distance;
+                        let mut position_y = 0.;
+                        let mut min_distance = 100.;
+                        // Really heavy operations here. Could need some real optimization
+                        if let Some(VertexAttributeValues::Float32x3(vertex_positions)) =
+                            mesh.unwrap().attribute(Mesh::ATTRIBUTE_POSITION)
+                        {
+                            for position in vertex_positions.iter() {
+                                let distance = (position[0] - position_x).abs()
+                                    + (position[2] - position_z).abs();
+                                if distance < min_distance {
+                                    position_y = position[1];
+                                    if distance < 1. {
+                                        break;
                                     }
+                                    min_distance = distance;
                                 }
                             }
-                            blade.position.y = position_y;
                         }
-                        commands.spawn(WarblersBundle {
-                            grass: grass.clone(),
+                        blade.position.y = position_y;
+                    }
+                    commands.spawn(WarblersBundle {
+                        grass: grass.clone(),
+                        spatial: SpatialBundle {
                             transform: ground_transform.clone(),
                             ..default()
-                        });
-                    }
-                    
+                        },
+                        ..default()
+                    });
+                }
             }
-            
+
             res.loaded = true;
         }
-        
     }
 }
 pub fn insert_grass_data(mut commands: Commands, server: Res<AssetServer>) {

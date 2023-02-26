@@ -147,7 +147,7 @@ fn prepare_scene(
                             for mesh_entity in scene_root_nodes.get(e).unwrap() {
                                 let custom_material = leaf_materials.add(tree::LeafMaterial {
                                     color: Color::YELLOW_GREEN,
-                                    color_texture: Some(asset_server.load("shaders/leaves.png")),
+                                    color_texture: Some(asset_server.load("leaves.png")),
                                 });
                                 commands.entity(*mesh_entity).remove::<Handle<StandardMaterial>>();
                                 commands

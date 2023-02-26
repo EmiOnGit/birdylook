@@ -14,8 +14,5 @@ ron = "0.8.0"
 serde = "1.0.152"
 bytemuck = "1.13.0"
 rand = "0.8.5"
-<<<<<<< HEAD
 warblersneeds = {git = "https://github.com/EmiOnGit/warblersneeds"}
-=======
 bevy_shader_utils = {git = "https://github.com/Sjael/bevy_shader_utils"}
->>>>>>> 292ab3854d03abffe9e4563331691527b752645b

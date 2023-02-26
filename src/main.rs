@@ -5,16 +5,10 @@ mod tree;
 // use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy_flycam::{FlyCam, NoCameraPlayerPlugin};
 use bevy_inspector_egui::quick::{AssetInspectorPlugin, WorldInspectorPlugin};
-<<<<<<< HEAD
-
-use bevy::{prelude::*, scene::SceneInstance, window::WindowPlugin};
-use grass::GrassPlugin;
-=======
 use grass::GrassPlugin;
 use tree::TreePlugin;
 
 use bevy::{prelude::*, scene::SceneInstance, window::WindowPlugin, pbr::NotShadowReceiver};
->>>>>>> 292ab3854d03abffe9e4563331691527b752645b
 use water::{
     setup_reflection_cam, update_reflection_cam, update_reflection_texture, WaterMaterial,
     WaterReflectionTexture,

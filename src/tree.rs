@@ -1,9 +1,9 @@
 use bevy::{
-    pbr::{MaterialPipeline, MaterialPipelineKey, NotShadowReceiver},
+    pbr::{MaterialPipeline, MaterialPipelineKey},
     prelude::*,
     reflect::TypeUuid,
     render::{
-        mesh::{MeshVertexBufferLayout, VertexAttributeValues},
+        mesh::{MeshVertexBufferLayout},
         render_resource::{
             AsBindGroup, RenderPipelineDescriptor, ShaderRef, SpecializedMeshPipelineError,
         },

@@ -24,8 +24,8 @@ fn vertex(vertex: Vertex) -> VertexOutput {
     var out: VertexOutput;
     // Displacing the top of the grass. 
     // Can only affect the top vertex since vertex.position.y is 0 for all others
-    position.x += sin(vertex.position.y * position.z * globals.time / 10.) / 10.;
-    position.z += sin(vertex.position.y * position.x * globals.time / 10.) / 10.3;
+    position.x += sin(vertex.position.y * position.z * globals.time / 15.) / 7.;
+    position.z += sin(vertex.position.y * position.x * globals.time / 20.) / 3.;
     
     out.clip_position = mesh_position_local_to_clip(mesh.model, vec4<f32>(position, 1.0));
     // The grass should be darker at the buttom

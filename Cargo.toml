@@ -14,4 +14,5 @@ ron = "0.8.0"
 serde = "1.0.152"
 bytemuck = "1.13.0"
 rand = "0.8.5"
-warblersneeds = {git = "https://github.com/EmiOnGit/warblersneeds"}
+warbler_grass = "0.0.1"
+image = "*"

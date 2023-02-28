@@ -32,7 +32,7 @@ fn main() {
         // used to show fps in console
         // .add_plugin(FrameTimeDiagnosticsPlugin::default())
         // .add_plugin(LogDiagnosticsPlugin::default())
-        .add_plugin(warblersneeds::warblers_plugin::WarblersPlugin)
+        .add_plugin(warbler_grass::warblers_plugin::WarblersPlugin)
         .add_plugin(GrassPlugin)
         .add_plugin(WorldInspectorPlugin)
         .add_plugin(AssetInspectorPlugin::<WaterMaterial>::default())

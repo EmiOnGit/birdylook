@@ -1,10 +1,6 @@
 # Birdylook
 This is a project mainly to showcase more advanced techniques in the [bevy](https://bevyengine.org/) ecosystem or as a template for others.
-If you see any bugs or want to rewrite something more efficiently or readable feel free to make a PR or open an Issue to describe your thoughts.
-Currently, the project aims to implement a nice-looking environment with:
-- Animated water
-- Good looking lighting
-- Animated grass
+If you see any bugs or want to rewrite something more efficiently or readable feel free to make a PR or open an issue to describe your thoughts.
 
 ![Showcase](assets/showcase.gif)
 ## Animated Water
@@ -27,7 +23,9 @@ The lanterns do emit light by having a simple point light as a child.
 Furthermore, plans are to move/distort the light by the wind.
 
 ## Animated grass
-The grass is created using instancing close to the [example in the bevy repo](https://github.com/bevyengine/bevy/blob/latest/examples/shader/shader_instancing.rs). To generate the places where the grass is generated I use a more hacky way. I use a [texture](assets/layers/unformated/grass_placement.png) to mark all the places I want random grass to be generated. Using a small [python script](assets/layers/converter/converter.py) I transform the image into a ron file, consisting of all places compressed into bigger quads. 
+The grass is created using the [`warbler_grass`](https://github.com/EmiOnGit/warbler_grass) crate.
+It uses heavy instancing and a little editor to create your own grass easily.
+For grass is loaded from the images found in the [assets folder](assets/grass/) and can be changed dynamically.
 
 # License
 ## Code

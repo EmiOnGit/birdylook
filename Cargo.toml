@@ -6,13 +6,13 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = "0.9.1"
-bevy-inspector-egui = "0.17.0"
-
-bevy_flycam = { git = "https://github.com/sburris0/bevy_flycam" }
+bevy = "0.10.0"
+bevy-inspector-egui = "0.18.0"
+# Switch to the main reposity again as soon as the 0.10 pr gets merged
+bevy_flycam = { git = "https://github.com/NiklasEi/bevy_flycam/", branch = "bevy_main" }
 ron = "0.8.0"
 serde = "1.0.152"
 bytemuck = "1.13.0"
 rand = "0.8.5"
-warbler_grass = "0.0.1"
-image = "*"
+warbler_grass = {git = "https://github.com/EmiOnGit/warbler_grass", branch = "editor", features = ["editor"]}
+image = "0.24.5"

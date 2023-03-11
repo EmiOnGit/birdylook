@@ -8,7 +8,7 @@ use bevy::{
             TextureUsages,
         },
     },
-    window::WindowResized,
+    window::{PrimaryWindow, WindowResized},
 };
 
 #[derive(Resource)]
@@ -60,9 +60,9 @@ pub fn update_reflection_texture(
     mut water_assets: ResMut<Assets<WaterMaterial>>,
 ) {
     for WindowResized {
-        id: _,
         width,
         height,
+        window: _,
     } in size_changed.iter()
     {
         let tex = tex_res.as_mut();
@@ -89,9 +89,9 @@ pub fn update_reflection_texture(
 pub fn setup_reflection_cam(
     mut commands: Commands,
     mut images: ResMut<Assets<Image>>,
-    windows: Res<Windows>,
+    windows: Query<&Window, With<PrimaryWindow>>,
 ) {
-    let window = windows.get_primary().unwrap();
+    let window = windows.single();
     let size = Extent3d {
         width: window.width() as u32 / 2,
         height: window.height() as u32 / 2,
@@ -109,6 +109,7 @@ pub fn setup_reflection_cam(
             usage: TextureUsages::TEXTURE_BINDING
                 | TextureUsages::COPY_DST
                 | TextureUsages::RENDER_ATTACHMENT,
+            view_formats: &[],
         },
         ..default()
     };
@@ -119,7 +120,7 @@ pub fn setup_reflection_cam(
     });
     let camera = Camera {
         target: RenderTarget::Image(image_handle),
-        priority: 0,
+        order: 0,
         ..default()
     };
 
@@ -137,19 +138,23 @@ pub fn update_reflection_cam(
     mut ref_cam: Query<&mut Transform, (With<Camera>, Without<Player>)>,
     player_cam: Query<&Transform, With<Player>>,
 ) {
-    if let Ok(player_cam) = player_cam.get_single() {
-        if let Ok(mut ref_cam) = ref_cam.get_single_mut() {
-            // In a more advanced implementation we would be able to use the y-position of the water surface
-            // we'd like to reflect! This assumes that the surface is very close to y = 0 at all times
-            ref_cam.translation.x = player_cam.translation.x;
-            ref_cam.translation.z = player_cam.translation.z;
-            ref_cam.translation.y = -player_cam.translation.y;
+    // can not update the reflection if the player has no camera
+    let Ok(player_cam) = player_cam.get_single() else {
+        return;
+    };
+    // can not update the reflection cam if there is no reflection cam :p
+    let Ok(mut ref_cam) = ref_cam.get_single_mut() else {
+        return;
+    };
+    // In a more advanced implementation we would be able to use the y-position of the water surface
+    // we'd like to reflect! This assumes that the surface is very close to y = 0 at all times
+    ref_cam.translation.x = player_cam.translation.x;
+    ref_cam.translation.z = player_cam.translation.z;
+    ref_cam.translation.y = -player_cam.translation.y;
 
-            // Quad[-x,y,-z,w] mirrors the Quad at the local z-axis. which is exactly what we want!
-            let mut players_rotation = player_cam.rotation;
-            players_rotation.x *= -1.;
-            players_rotation.z *= -1.;
-            ref_cam.rotation = players_rotation;
-        }
-    }
+    // Quad[-x,y,-z,w] mirrors the Quad at the local z-axis. which is exactly what we want!
+    let mut players_rotation = player_cam.rotation;
+    players_rotation.x *= -1.;
+    players_rotation.z *= -1.;
+    ref_cam.rotation = players_rotation;
 }

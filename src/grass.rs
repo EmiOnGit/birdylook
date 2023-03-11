@@ -1,92 +1,81 @@
-use bevy::{
-    prelude::*,
-    render::{mesh::VertexAttributeValues, primitives::Aabb},
-};
-use warbler_grass::{prelude::*, grass_spawner::GrassSpawner};
-use image;
+use bevy::{prelude::*, render::primitives::Aabb};
+use warbler_grass::prelude::*;
 
 pub struct GrassPlugin;
 impl Plugin for GrassPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(create_grass);
+        app.add_system(create_grass)
+            .add_plugin(warbler_grass::editor::EditorPlugin);
     }
 }
-const GRASS_PLANE_SIZE: usize = 512;
+/// Creates the grass in our game world
 fn create_grass(
     mut commands: Commands,
-    meshes: ResMut<Assets<Mesh>>,
-    ground: Query<(&Transform, &Name, &Children)>,
-    ground_plane: Query<(&Aabb, &Handle<Mesh>)>,
-    mut created_successfully: Local<bool>,
+    asset_server: Res<AssetServer>,
+    scene_obj: Query<(&Name, &Transform)>,
+    mesh_child: Query<(&Aabb, &Handle<Mesh>, &Parent)>,
+    mut mesh_assets: EventReader<AssetEvent<Mesh>>,
 ) {
-    if *created_successfully {
-        return;
-    }
-    let image_bytes = include_bytes!("../assets/layers/unformated/grass_placement.png");
-    let image = image::load_from_memory(image_bytes).unwrap().to_rgb32f();
-    let image_width = image.width() as usize;
-    let mut blade_positions = Vec::new();
-    let mut blade_heights = Vec::new();
-    for (i, pix )in image.pixels().enumerate() {
-        if pix[0] < 0.9 {
-            let x = i % image_width;
-            let z = i / image_width;
-            blade_positions.push(Vec2::new(x as f32,z as f32));
-            blade_heights.push(((1. - pix[0]) * 2.).max(0.3))
-        }
-    }
+    // The scene object loads in following relationship in bevy:
+    // SceneRoot -> [Ground, Water, Bridge, ..] // Scene objects
+    // Ground(Transform) -> GroundMesh // each object has a child with the mesh
+    // GroundMesh(Aabb,Handle<Mesh>)
 
-
-    for (ground_transform, ground_name, children) in ground.iter() {
-        if ground_name.contains("Ground") {
-            let mut scale_x = 1.;
-            let mut mesh = None;
-
-            let mut scale_z = 1.;
-            for child in children.iter() {
-                let (aabb, mesh_handle) = ground_plane.get(*child).unwrap();
-                scale_x = aabb.center.x * 2. / GRASS_PLANE_SIZE as f32;
-                scale_z = aabb.center.z * 2. / GRASS_PLANE_SIZE as f32;
-                mesh = meshes.get(mesh_handle);
-            }
-            let mut y_positions = Vec::with_capacity(blade_positions.len());
-            for position in blade_positions.iter_mut() {
-                position.x *= scale_x;
-                position.y *= scale_z;
-
-                let position_x = position.x;
-                let position_z = position.y;
-
-                let mut position_y = 0.;
-                let mut min_distance = 100.;
-                // Really heavy operations here. Could need some real optimization
-                if let Some(VertexAttributeValues::Float32x3(vertex_positions)) =
-                    mesh.unwrap().attribute(Mesh::ATTRIBUTE_POSITION)
-                {
-                    for position in vertex_positions.iter() {
-                        let distance = (position[0] - position_x).abs()
-                            + (position[2] - position_z).abs();
-                        if distance < min_distance {
-                            position_y = position[1];
-                            if distance < 1. {
-                                break;
-                            }
-                            min_distance = distance;
-                        }
-                    }
+    // wait for the scene to load the ground mesh
+    for ev in mesh_assets.iter() {
+        if let AssetEvent::Created {
+            handle: created_handle,
+        } = ev
+        {
+            // mesh_child is the ground mesh
+            for (aabb, handle, parent) in mesh_child.iter() {
+                // check if this mesh was created
+                if handle != created_handle {
+                    continue;
                 }
-                y_positions.push(position_y);
+                // get the parent
+                let parent_id = parent.get();
+                // check if the scene object has the needed components and fetch it accordingly
+                let Ok((name, transform)) = scene_obj.get(parent_id) else {
+                    continue
+                };
+                // We gave our ground the name object name "Ground" in blender
+                if !name.contains("Ground") {
+                    continue;
+                }
+                // load the height map from image
+                let height_map_texture = asset_server.load("grass/height_map.png");
+                let height_map = HeightMap {
+                    height_map: height_map_texture,
+                };
+                // load the density map from image
+                let density_map_texture = asset_server.load("grass/density_map.png");
+                let density_map = DensityMap {
+                    density_map: density_map_texture,
+                    density: 2.,
+                };
+                // load the heights of the blades from iamge
+                let heights_map_texture = asset_server.load("grass/heights_map.png");
+                let warbler_height = WarblerHeight::Texture(heights_map_texture);
+                // spawn the grass
+                commands
+                    .spawn(WarblersBundle {
+                        height_map: height_map.clone(),
+                        density_map: density_map.clone(),
+                        height: warbler_height.clone(),
+                        // the aabb of the grass chunk defines the chunk size
+                        aabb: aabb.clone(),
+                        spatial: SpatialBundle {
+                            // we give the chunk the same transform as the ground scene object so their start at the same position
+                            // We could also set the grass chunk as child of the ground entity as an alternative
+                            transform: transform.clone(),
+                            ..default()
+                        },
+                        ..default()
+                    })
+                    // we name it so it is easier to identify in the inspector
+                    .insert(Name::new("Grass chunk"));
             }
-            commands.spawn(WarblersBundle {
-                grass_spawner: GrassSpawner::new().with_positions_y(y_positions).with_positions_xz(blade_positions.clone()).with_heights(blade_heights.clone()),
-                spatial: SpatialBundle {
-                    transform: ground_transform.clone(),
-                    ..default()
-                },
-                ..default()
-            });
-            *created_successfully = true;
         }
     }
-
 }
